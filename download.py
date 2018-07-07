@@ -4,6 +4,7 @@
 # @Time    : 2018/6/7 0007 15:21
 # @Desc    :
 
+import random
 import math
 import os
 import queue
@@ -38,7 +39,7 @@ class ImageDownloadThread(QThread):
             self.running = not self.running
 
     def run(self):
-        url = 'http://api0.map.bdimg.com/customimage/tile'
+        url = 'http://api{}.map.bdimg.com/customimage/tile'.format(random.choice(range(3)))
         while True:
             if self.running:
                 try:
@@ -97,10 +98,10 @@ class DownloadEngine(QThread):
 
         for z in self.zoom_list:
             z = int(z)
-            x1 = round(corner['lower_left_corner']['lng'] / math.pow(2, 18 - z) / 256)
-            y1 = round(corner['lower_left_corner']['lat'] / math.pow(2, 18 - z) / 256)
-            x2 = round(corner['upper_right_corner']['lng'] / math.pow(2, 18 - z) / 256)
-            y2 = round(corner['upper_right_corner']['lat'] / math.pow(2, 18 - z) / 256)
+            x1 = math.floor(corner['lower_left_corner']['lng'] / math.pow(2, 18 - z) / 256)
+            y1 = math.floor(corner['lower_left_corner']['lat'] / math.pow(2, 18 - z) / 256)
+            x2 = math.ceil(corner['upper_right_corner']['lng'] / math.pow(2, 18 - z) / 256)
+            y2 = math.ceil(corner['upper_right_corner']['lat'] / math.pow(2, 18 - z) / 256)
 
             for x in range(x1, x2 + 1):
                 for y in range(y1, y2 + 1):
