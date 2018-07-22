@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# @File    : google1.py
+# @File    : googlemap.py
 # @Author  : LVFANGFANG
 # @Time    : 2018/7/7 0007 21:54
 # @Desc    :
@@ -11,7 +11,7 @@ import requests
 
 def deg2num(point, zoom):
     '''
-    高德地图经纬度坐标(lng, lat)转瓦片坐标(tileX, tileY)
+    经纬度坐标(lng, lat)转瓦片坐标(tileX, tileY)
     :param point:
     :param zoom:
     :return:
@@ -60,8 +60,8 @@ def get_city_data(city):
     # print(polyline)
 
     polyline_list = [i.split(',') for i in re.split(';|\|', polyline)]
-    lng_list = [i[0] for i in polyline_list]
-    lat_list = [i[1] for i in polyline_list]
+    lng_list = [float(i[0]) for i in polyline_list]
+    lat_list = [float(i[1]) for i in polyline_list]
     corner = {'lower_left_corner': {'lng': min(lng_list), 'lat': min(lat_list)},
               'upper_right_corner': {'lng': max(lng_list), 'lat': max(lat_list)}}
 
@@ -69,4 +69,4 @@ def get_city_data(city):
 
 
 if __name__ == '__main__':
-    get_city_data('深圳市')
+    print(get_city_data('深圳市南山区'))

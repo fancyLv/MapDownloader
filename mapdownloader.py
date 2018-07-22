@@ -19,6 +19,7 @@ class MainDialog(QDialog):
     def __init__(self, parent=None):
         super(MainDialog, self).__init__(parent)
         self.resize(625, 240)
+        self.dir = os.path.split(os.path.realpath(__file__))[0]
         provinceLabel = QLabel('省或直辖市')
         cityLabel = QLabel('市')
         townLabel = QLabel('区县')
@@ -39,7 +40,7 @@ class MainDialog(QDialog):
         self.spinBox.setMaximum(20)
         self.spinBox.setProperty("value", 10)
         pathLabel = QLabel('存储目录')
-        self.pathLineEdit = QLineEdit(os.path.split(os.path.realpath(__file__))[0].replace('\\', '/'))
+        self.pathLineEdit = QLineEdit()
 
         self.pathLineEdit.setEnabled(False)
         self.pathButton = QPushButton('浏览')
@@ -50,6 +51,23 @@ class MainDialog(QDialog):
         self.cancelButton.setObjectName('cancelButton')
         progressLabel = QLabel('下载进度')
         self.progressBar = QProgressBar()
+
+        self.buttonGroup = QButtonGroup()
+        self.rb1 = QRadioButton('百度')
+        self.rb2 = QRadioButton('谷歌')
+        self.rb3 = QRadioButton('高德')
+        self.rb4 = QRadioButton('天地图')
+        self.rb4.setEnabled(False)
+        self.buttonGroup.addButton(self.rb1, 1)
+        self.buttonGroup.addButton(self.rb2, 2)
+        self.buttonGroup.addButton(self.rb3, 3)
+        self.buttonGroup.addButton(self.rb4, 4)
+        self.rb1.setChecked(True)
+        rbLayout = QHBoxLayout()
+        rbLayout.addWidget(self.rb1)
+        rbLayout.addWidget(self.rb2)
+        rbLayout.addWidget(self.rb3)
+        rbLayout.addWidget(self.rb4)
 
         topLayout = QHBoxLayout()
         topLayout.addWidget(pathLabel)
@@ -81,6 +99,7 @@ class MainDialog(QDialog):
         bottomLayout.addWidget(self.progressBar)
 
         layout = QVBoxLayout()
+        layout.addLayout(rbLayout)
         layout.addLayout(topLayout)
         layout.addLayout(cityLayout)
         layout.addLayout(styleLayout)
@@ -99,8 +118,13 @@ class MainDialog(QDialog):
         self.downloadButton.clicked.connect(self.on_downloadButton_clicked)
         self.cancelButton.clicked.connect(self.on_cancelButton_clicked)
         self.cancelButton.blockSignals(True)
+        self.pathLineEdit.setText(os.path.join(self.dir, '百度地图').replace('\\', '/'))
         self.styleCheckBox.stateChanged.connect(self.on_styleCheckBox_stateChanged)
         self.comboCheck.currentTextChanged.connect(self.reset_state)
+        self.rb1.toggled.connect(self.on_radioButton_toggled)
+        self.rb2.toggled.connect(self.on_radioButton_toggled)
+        self.rb3.toggled.connect(self.on_radioButton_toggled)
+        self.rb4.toggled.connect(self.on_radioButton_toggled)
 
     def add_province_item(self):
         item = '请选择'
@@ -145,8 +169,25 @@ class MainDialog(QDialog):
             self.styleLineEdit.setEnabled(False)
         self.reset_state()
 
+    def on_radioButton_toggled(self):
+        if self.buttonGroup.checkedId() == 1:
+            path = os.path.join(self.dir, '百度地图').replace('\\', '/')
+            self.styleCheckBox.setEnabled(True)
+        elif self.buttonGroup.checkedId() == 2:
+            path = os.path.join(self.dir, '谷歌地图').replace('\\', '/')
+            self.styleCheckBox.setEnabled(False)
+        elif self.buttonGroup.checkedId() == 3:
+            path = os.path.join(self.dir, '高德地图').replace('\\', '/')
+            self.styleCheckBox.setEnabled(False)
+        else:
+            path = os.path.join(self.dir, '天地图').replace('\\', '/')
+            self.styleCheckBox.setEnabled(False)
+        self.pathLineEdit.setText(path)
+
+
     def on_cancelButton_clicked(self):
-        self.downloadEngine.terminate()
+        if hasattr(self.downloadEngine, 'threads'):
+            self.downloadEngine.terminate()
         self.reset_state()
 
     def on_downloadButton_clicked(self):
@@ -167,7 +208,15 @@ class MainDialog(QDialog):
                 self.provinceCombo.currentText() + self.cityCombo.currentText() + self.townCombo.currentText()).replace(
                 '请选择', '')
             thread_num = self.spinBox.text()
-            self.downloadEngine = DownloadEngine(area, level, path, style, thread_num)
+            if self.buttonGroup.checkedId() == 1:
+                maptype = 'baidu'
+            elif self.buttonGroup.checkedId() == 2:
+                maptype = 'google'
+            elif self.buttonGroup.checkedId() == 3:
+                maptype = 'gaode'
+            else:
+                maptype = 'tiandiyu'
+            self.downloadEngine = DownloadEngine(maptype, area, level, path, style, thread_num)
             self.downloadEngine.division_done_signal.connect(self.division_done_slot)
             self.downloadEngine.progressBar_updated_signal.connect(self.progressBar_updated_slot)
             self.downloadEngine.download_done_signal.connect(self.download_done_slot)
