@@ -6,6 +6,7 @@
 
 import math
 import re
+
 import requests
 
 
@@ -23,50 +24,46 @@ def deg2num(point, zoom):
     return (tileX, tileY)
 
 
-def get_city_data(city):
+def get_city_data(area):
     '''
     获取行政区划边界
-    :param city:
+    :param area:
     :return:
     '''
+    areacode = area[1]
     url = 'https://restapi.amap.com/v3/config/district'
-
     params = {'subdistrict': '1',
+              'showbiz': 'false',
               'extensions': 'all',
-              'level': 'district',
               'key': '608d75903d29ad471362f8c58c550daf',
               's': 'rsv3',
               'output': 'json',
-              'keywords': city,
+              'level': 'district',
+              'keywords': areacode,
               'platform': 'JS',
               'logversion': '2.0',
-              'appname': 'https://lbs.amap.com/api/javascript-api/example/district-search/draw-district-boundaries/',
-              'csid': 'EDF9F600-4CAE-4A1C-B9E5-DC7F85B474F1',
-              'sdkversion': '1.4.6'}
-
+              'appname': 'https://lbs.amap.com/fn/iframe/?id=390&guide=1&litebar=4',
+              'csid': 'CF806018-C80C-4875-A29E-1443A7C4B2BC',
+              'sdkversion': '1.4.9'}
     headers = {'Accept': '*/*',
                'Accept-Encoding': 'gzip, deflate, br',
                'Accept-Language': 'zh-CN,zh;q=0.9',
                'Connection': 'keep-alive',
-               'Cookie': 'guid=c3ba-bf36-06f3-76d9; UM_distinctid=163c875d1572e-0b65f7f245e53d-5e4b2519-100200-163c875d1592c; cna=BobmEZlAaBgCAbcnxyuyvmb1; isg=BF9fYnoHeC0umHwwMLuLfchz7rMpbPRJxPtIu_Gs-45VgH8C-ZRDtt1yRlBbA4ve; key=608d75903d29ad471362f8c58c550daf',
                'Host': 'restapi.amap.com',
-               'Referer': 'https://lbs.amap.com/api/javascript-api/example/district-search/draw-district-boundaries/',
-               'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.62 Safari/537.36'}
-
-    r = requests.get(url, headers=headers, params=params)
-
+               'Referer': 'https://lbs.amap.com/fn/iframe/?id=390&guide=1&litebar=4',
+               'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36', }
+    r = requests.get(url, headers=headers, params=params, verify=False)
     data = r.json()
-    polyline = data['districts'][0]['polyline']
-    # print(polyline)
+    if data['status'] == '1':
+        polyline = data['districts'][0]['polyline']
+        polyline_list = [i.split(',') for i in re.split(';|\|', polyline)]
+        lng_list = [float(i[0]) for i in polyline_list]
+        lat_list = [float(i[1]) for i in polyline_list]
+        corner = {'lower_left_corner': {'lng': min(lng_list), 'lat': min(lat_list)},
+                  'upper_right_corner': {'lng': max(lng_list), 'lat': max(lat_list)}}
 
-    polyline_list = [i.split(',') for i in re.split(';|\|', polyline)]
-    lng_list = [float(i[0]) for i in polyline_list]
-    lat_list = [float(i[1]) for i in polyline_list]
-    corner = {'lower_left_corner': {'lng': min(lng_list), 'lat': min(lat_list)},
-              'upper_right_corner': {'lng': max(lng_list), 'lat': max(lat_list)}}
-
-    return corner
+        return corner
 
 
 if __name__ == '__main__':
-    print(get_city_data('深圳市南山区'))
+    print(get_city_data(('深圳市南山区', '440305')))

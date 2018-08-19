@@ -184,7 +184,6 @@ class MainDialog(QDialog):
             self.styleCheckBox.setEnabled(False)
         self.pathLineEdit.setText(path)
 
-
     def on_cancelButton_clicked(self):
         if hasattr(self.downloadEngine, 'threads'):
             self.downloadEngine.terminate()
@@ -207,16 +206,17 @@ class MainDialog(QDialog):
             area = (
                 self.provinceCombo.currentText() + self.cityCombo.currentText() + self.townCombo.currentText()).replace(
                 '请选择', '')
+            areacode = self.townCombo.currentData() if self.townCombo.currentData() else self.cityCombo.currentData() if self.cityCombo.currentData() else self.provinceCombo.currentData()
             thread_num = self.spinBox.text()
             if self.buttonGroup.checkedId() == 1:
                 maptype = 'baidu'
             elif self.buttonGroup.checkedId() == 2:
                 maptype = 'google'
             elif self.buttonGroup.checkedId() == 3:
-                maptype = 'gaode'
+                maptype = 'amap'
             else:
                 maptype = 'tiandiyu'
-            self.downloadEngine = DownloadEngine(maptype, area, level, path, style, thread_num)
+            self.downloadEngine = DownloadEngine(maptype, (area, areacode), level, path, style, thread_num)
             self.downloadEngine.division_done_signal.connect(self.division_done_slot)
             self.downloadEngine.progressBar_updated_signal.connect(self.progressBar_updated_slot)
             self.downloadEngine.download_done_signal.connect(self.download_done_slot)

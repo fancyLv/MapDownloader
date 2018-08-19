@@ -17,7 +17,7 @@ def get_jsonData(url, params):
                'Host': 'map.baidu.com',
                'Referer': 'https://map.baidu.com/',
                'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36'}
-    req = requests.get(url, headers=headers, params=params)
+    req = requests.get(url, headers=headers, params=params, verify=False)
     data = req.json()
     return data
 
@@ -38,12 +38,13 @@ def get_uid(city):
     return uid
 
 
-def get_city_data(city):
+def get_city_data(area):
     '''
     获取行政区划边界
-    :param city:
+    :param area:
     :return:
     '''
+    city = area[0]
     uid = get_uid(city)
     url = 'http://map.baidu.com/'
     boundaries = {}
