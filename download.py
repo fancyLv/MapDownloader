@@ -4,10 +4,9 @@
 # @Time    : 2018/6/7 0007 15:21
 # @Desc    :
 
-import random
-import math
 import os
 import queue
+import random
 import time
 
 import requests
@@ -48,12 +47,13 @@ class ImageDownloadThread(QThread):
                     'ak': 'E4805d16520de693a3fe707cdc962045'}
             if self.style:
                 data.update({'styles': self.style})
-        elif self.map == 'gaode':
-            url = 'https://wprd0{}.is.autonavi.com/appmaptile'.format(random.choice(range(1, 5)))
+        elif self.map == 'amap':
+            url = 'https://webrd0{}.is.autonavi.com/appmaptile'.format(random.choice(range(1, 5)))
             data = {'size': '1',
                     'style': '7',
                     'scl': '1',
-                    # 'ltype': '11'
+                    'scale': '1',
+                    'lang': 'zh_cn'
                     }
         elif self.map == 'google':
             url = 'https://maps.googleapis.com/maps/vt'
@@ -76,7 +76,7 @@ class ImageDownloadThread(QThread):
                 os.makedirs(os.path.join(self.path, 'tiles', str(z), str(x)), exist_ok=True)
                 while True:
                     try:
-                        r = requests.get(url, params=data)
+                        r = requests.get(url, params=data, verify=False)
                         filename = os.path.join(self.path, 'tiles', str(z), str(x), '{}.jpg'.format(y))
                         with open(filename, 'wb') as f:
                             f.write(r.content)
@@ -99,7 +99,7 @@ class DownloadEngine(QThread):
         self.map = maptype
         self.area = area
         self.zoom_list = zoom_list
-        self.path = os.path.join(path, area)
+        self.path = os.path.join(path, area[0])
         self.style = style
         self.thread_num = int(thread_num)
 
@@ -116,7 +116,7 @@ class DownloadEngine(QThread):
         if self.map == 'baidu':
             get_data = baidumap.get_city_data
             get_tile = baidumap.point2num
-        elif self.map == 'google' or self.map == 'gaode':
+        elif self.map == 'google' or self.map == 'amap':
             get_data = googlemap.get_city_data
             get_tile = googlemap.deg2num
 
